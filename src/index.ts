@@ -26,10 +26,10 @@ cron.schedule(
     const todayFormat = today.format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
     try {
       functions.logger.info(`========== START CRONJOB AT: ${todayFormat} ==========`);
-      // const isWeekendDay =
-      //   today.day() === MOMENT_DATE.SATURDAY || today.day() === MOMENT_DATE.SUNDAY;
-      //
-      // if (isWeekendDay) return;
+      const isWeekendDay =
+        today.day() === MOMENT_DATE.SATURDAY || today.day() === MOMENT_DATE.SUNDAY;
+
+      if (isWeekendDay) return;
 
       const {
         data: {
