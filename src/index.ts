@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { config, Request, Response } from "firebase-functions";
+import { Request, Response } from "firebase-functions";
 import * as express from "express";
 import * as cron from "node-cron";
 import { CRON_REGEX } from "./constants/cron.guru";
@@ -13,14 +13,13 @@ import { ILeaveRequestPayload } from "./models/leave.interface";
 import { enumerateDaysBetweenDates } from "./ultils/day.helper";
 import * as morgan from "morgan";
 import moment = require("moment");
-import Config = config.Config;
 
 const app = express();
 
 app.use(morgan("combined"));
 
 cron.schedule(
-  CRON_REGEX.EVERY_MINUTE,
+  CRON_REGEX.AT_17H_DAILY,
   async function () {
     const today = moment(new Date());
     const todayFormat = today.format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
@@ -69,8 +68,6 @@ cron.schedule(
         if (todayInRangeLeaveDays) return;
       }
 
-      console.log("start check in here");
-
       // @ts-ignore
       const requestPayload: IRequestCheckin = {
         userId: 1,
@@ -101,8 +98,15 @@ cron.schedule(
 app.get("/api", async (req: Request, res: Response) => {
   const date = new Date();
   const hours = (date.getHours() % 12) + 1; // London is UTC + 1hr;
-  console.log("functions.config", functions.config() as Config);
-  res.json({ bongs: "BONG ".repeat(hours), token: functions.config() });
+  const {
+    data: {
+      result: { result: resultData }
+    }
+  }: AxiosResponse<ILeaveRequestPayload> = await axiosInstance.get(LEAVE_REQUEST_ENDPOINT, {
+    baseURL: LEAVE_URL,
+    params: { take: 20 }
+  });
+  res.json({ bongs: "BONG ".repeat(hours), resultData });
 });
 
 app.get("**", (req: Request, res: Response) => {
