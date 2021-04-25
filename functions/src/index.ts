@@ -4,20 +4,24 @@ import * as express from "express";
 import * as cron from "node-cron";
 import { CRON_REGEX } from "./constants/cron.guru";
 import { IRequestCheckin } from "./models/checkin-request.interface";
-import axiosInstance, { LEAVE_URL } from "./api/axios.config";
+import axiosInstance from "./api/axios.config";
 import { MOMENT_DATE } from "./constants/moment.date";
-// @ts-ignore
-import { LEAVE_REQUEST_ENDPOINT, TIME_SHEET_ADD_ENDPOINT } from "./api/endpoint";
+import { REMOVE_TIME_SHEET, TIME_SHEET_ADD_ENDPOINT, TIME_SHEET_CALENDAR_ME } from "./api/endpoint";
 import { AxiosResponse } from "axios";
-import { ILeaveRequestPayload } from "./models/leave.interface";
-import { enumerateDaysBetweenDates } from "./ultils/day.helper";
 import * as morgan from "morgan";
-import moment = require("moment");
+import * as moment from "moment";
+import { ITimeSheetCalendarResponse, LogTime } from "./models/time-sheet-calendar.response";
+import { FULL_DAY_WORKING, HALF_DAY_WORKING } from "./constants/hour";
 
 const app = express();
 
 app.use(morgan("combined"));
 
+/**
+ * Auto checkin tool with cronjob will run at 17h daily Vietnam Timezone
+ * @param  none
+ * @return none
+ */
 cron.schedule(
   CRON_REGEX.AT_17H_DAILY,
   async function () {
@@ -31,48 +35,33 @@ cron.schedule(
       if (isWeekendDay) return;
 
       const {
-        data: {
-          result: { result: resultData }
-        }
-      }: AxiosResponse<ILeaveRequestPayload> = await axiosInstance.get(LEAVE_REQUEST_ENDPOINT, {
-        baseURL: LEAVE_URL,
-        params: { take: 20 }
-      });
-      functions.logger.info(`========== resultData: ${resultData} ==========`);
+        data: logTimeCalendar
+      }: AxiosResponse<ITimeSheetCalendarResponse[]> = await axiosInstance.get(
+        TIME_SHEET_CALENDAR_ME
+      );
 
-      for (const leaveItem of resultData) {
-        const monthOfLeaveEndDate = moment(new Date(leaveItem.endDate)).month();
-        const monthOfLeaveStartDate = moment(new Date(leaveItem.startDate)).month();
-        const thisMonth = today.month();
+      const logTimeByToday = logTimeCalendar.find(
+        ({ logDate }: ITimeSheetCalendarResponse) =>
+          moment(new Date(logDate)).format(MOMENT_DATE.FORMAT_YYYY_MM_DD) === todayFormat
+      );
 
-        if (thisMonth > monthOfLeaveEndDate || thisMonth < monthOfLeaveStartDate) break;
+      const {
+        isPublicHoliday,
+        isOffMorning,
+        isOffAfternoon,
+        logTimes
+      } = logTimeByToday as ITimeSheetCalendarResponse;
 
-        const { endDate, startDate } = leaveItem;
-
-        if (endDate === startDate) {
-          const endDateFormat = moment(new Date(endDate)).format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
-
-          if (todayFormat === endDateFormat) {
-            return;
-          }
-        }
-
-        const endDateFormat = moment(new Date(endDate)).format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
-        const startDateFormat = moment(new Date(startDate)).format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
-
-        const todayInRangeLeaveDays = enumerateDaysBetweenDates(
-          endDateFormat,
-          startDateFormat
-        ).includes(todayFormat);
-
-        if (todayInRangeLeaveDays) return;
+      if (isPublicHoliday || logTimes.length || (isOffMorning && isOffAfternoon)) {
+        return;
       }
 
-      // @ts-ignore
+      const hoursWorking = isOffMorning || isOffAfternoon ? HALF_DAY_WORKING : FULL_DAY_WORKING;
+
       const requestPayload: IRequestCheckin = {
         userId: 1,
         logDate: todayFormat,
-        hours: 8,
+        hours: hoursWorking,
         hourRate: 1,
         activity: 1,
         projectId: 16548,
@@ -81,6 +70,7 @@ cron.schedule(
       };
 
       await axiosInstance.post(TIME_SHEET_ADD_ENDPOINT, requestPayload);
+
       functions.logger.info(`Check in successful date: ${todayFormat}`);
     } catch (e) {
       functions.logger.error(e);
@@ -93,21 +83,54 @@ cron.schedule(
   }
 );
 
-// cron.schedule(CHECKIN_CRON_REGEX_TIME, () => {});
-
 app.get("/api", async (req: Request, res: Response) => {
-  const date = new Date();
-  const hours = (date.getHours() % 12) + 1; // London is UTC + 1hr;
-  const {
-    data: {
-      result: { result: resultData }
-    }
-  }: AxiosResponse<ILeaveRequestPayload> = await axiosInstance.get(LEAVE_REQUEST_ENDPOINT, {
-    baseURL: LEAVE_URL,
-    params: { take: 20 }
-  });
-  res.json({ bongs: "BONG ".repeat(hours), resultData });
+  try {
+    const date = new Date();
+    const hours = (date.getHours() % 12) + 1; // London is UTC + 1hr;
+    res.json({ bongs: "BONG 123132".repeat(hours) });
+  } catch (e) {
+    functions.logger.error(e);
+  }
 });
+
+/**
+ * API remove all timesheet is not valid
+ * @param  none
+ * @return none
+ */
+app.post(
+  "/api/remove-timesheet",
+  async (req: Request, res: Response): Promise<any> => {
+    try {
+      const {
+        data: logTimeCalendar
+      }: AxiosResponse<ITimeSheetCalendarResponse[]> = await axiosInstance.get(
+        TIME_SHEET_CALENDAR_ME
+      );
+
+      const getInvalidCheckinDay = logTimeCalendar.find(
+        ({ isValid }: ITimeSheetCalendarResponse) => !isValid
+      );
+
+      if (!getInvalidCheckinDay) return res.status(500).json({ data: "No data remove" });
+
+      const { logTimes } = getInvalidCheckinDay as ITimeSheetCalendarResponse;
+
+      if (!logTimes.length) return res.status(500).json({ data: "No data remove" });
+
+      const onRemoveAllInvalidDatePromise = logTimes.map(
+        async ({ timesheetId }: LogTime) => await axiosInstance.put(REMOVE_TIME_SHEET(timesheetId))
+      );
+
+      await Promise.all(onRemoveAllInvalidDatePromise);
+
+      return res.json({ data: "Remove all Invalid day success!" });
+    } catch (e) {
+      res.json({ error: e });
+      functions.logger.error(e);
+    }
+  }
+);
 
 app.get("**", (req: Request, res: Response) => {
   res.status(200).send(`
@@ -121,4 +144,9 @@ app.get("**", (req: Request, res: Response) => {
   </html>`);
 });
 
-exports.app = functions.https.onRequest(app);
+exports.app = functions
+  .runWith({
+    // timeoutSeconds: 100,
+    memory: "4GB"
+  })
+  .https.onRequest(app);

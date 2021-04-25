@@ -1,0 +1,9 @@
+export const PUBLIC_HOLIDAY = {
+  NEW_YEAR: "1-1",
+  HUNG_KINGS_FESTIVAL: "3-10",
+  REUNIFICATION: "4-30",
+  LABOUR: "5-1",
+  INDEPENDENCE: "9-2"
+};
+
+export const ALL_PUBLIC_HOLIDAY = Object.values(PUBLIC_HOLIDAY);
