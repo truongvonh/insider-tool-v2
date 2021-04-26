@@ -21,6 +21,7 @@ const app = express();
 
 app.use(morgan("combined"));
 
+
 /**
  * Auto checkin tool with cronjob will run at 17h daily Vietnam Timezone
  * @param  none
