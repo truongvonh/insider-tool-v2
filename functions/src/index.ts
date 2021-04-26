@@ -5,7 +5,7 @@ import * as cron from "node-cron";
 import { CRON_REGEX } from "./constants/cron.guru";
 import { IRequestCheckin } from "./models/checkin-request.interface";
 import axiosInstance from "./api/axios.config";
-import { MOMENT_DATE } from "./constants/moment.date";
+import { MOMENT_DATE, UTC_OFFSET } from "./constants/moment.date";
 import {
   REMOVE_TIME_SHEET_ENDPOINT,
   TIME_SHEET_ADD_ENDPOINT,
@@ -27,13 +27,13 @@ app.use(morgan("combined"));
  * @return none
  */
 cron.schedule(
-  CRON_REGEX.AT_0H_DAILY,
+  CRON_REGEX.AT_17H_DAILY,
   async function () {
-    const today = moment(new Date());
+    const today = moment(new Date()).utcOffset(UTC_OFFSET.VIETNAM);
     const todayFormat = today.format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
     functions.logger.info(`========== START CRONJOB AT: ${todayFormat} ==========`);
+
     try {
-      functions.logger.info(`========== START CRONJOB AT: ${todayFormat} ==========`);
       const isWeekendDay =
         today.day() === MOMENT_DATE.SATURDAY || today.day() === MOMENT_DATE.SUNDAY;
 
