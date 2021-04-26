@@ -21,7 +21,6 @@ const app = express();
 
 app.use(morgan("combined"));
 
-
 /**
  * Auto checkin tool with cronjob will run at 17h daily Vietnam Timezone
  * @param  none
@@ -152,8 +151,8 @@ app.get("**", (req: Request, res: Response) => {
 });
 
 exports.app = functions
+  .region("asia-southeast2")
   .runWith({
     memory: "4GB"
   })
-  .region("asia-southeast2-a")
   .https.onRequest(app);

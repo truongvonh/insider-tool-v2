@@ -6,6 +6,7 @@
         "source": "**",
         "function": "app"
       }
-    ]
+    ],
+    "source": "functions"
   }
 }
