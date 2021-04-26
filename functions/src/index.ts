@@ -1,17 +1,17 @@
 import * as functions from "firebase-functions";
-import { Request, Response } from "firebase-functions";
+import {Request, Response} from "firebase-functions";
 import * as express from "express";
 import * as cron from "node-cron";
-import { CRON_REGEX } from "./constants/cron.guru";
-import { IRequestCheckin } from "./models/checkin-request.interface";
+import {CRON_REGEX} from "./constants/cron.guru";
+import {IRequestCheckin} from "./models/checkin-request.interface";
 import axiosInstance from "./api/axios.config";
-import { MOMENT_DATE } from "./constants/moment.date";
-import { REMOVE_TIME_SHEET, TIME_SHEET_ADD_ENDPOINT, TIME_SHEET_CALENDAR_ME } from "./api/endpoint";
-import { AxiosResponse } from "axios";
+import {MOMENT_DATE} from "./constants/moment.date";
+import {REMOVE_TIME_SHEET_ENDPOINT, TIME_SHEET_ADD_ENDPOINT, TIME_SHEET_CALENDAR_ME} from "./api/endpoint";
+import {AxiosResponse} from "axios";
 import * as morgan from "morgan";
 import * as moment from "moment";
-import { ITimeSheetCalendarResponse, LogTime } from "./models/time-sheet-calendar.response";
-import { FULL_DAY_WORKING, HALF_DAY_WORKING } from "./constants/hour";
+import {ITimeSheetCalendarResponse, LogTime} from "./models/time-sheet-calendar.response";
+import {FULL_DAY_WORKING, HALF_DAY_WORKING} from "./constants/hour";
 
 const app = express();
 
@@ -23,10 +23,11 @@ app.use(morgan("combined"));
  * @return none
  */
 cron.schedule(
-  CRON_REGEX.AT_17H_DAILY,
+  CRON_REGEX.EVERY_MINUTE,
   async function () {
     const today = moment(new Date());
     const todayFormat = today.format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
+    functions.logger.info(`========== START CRONJOB AT: ${todayFormat} ==========`);
     try {
       functions.logger.info(`========== START CRONJOB AT: ${todayFormat} ==========`);
       const isWeekendDay =
@@ -118,8 +119,9 @@ app.post(
 
       if (!logTimes.length) return res.status(500).json({ data: "No data remove" });
 
-      const onRemoveAllInvalidDatePromise = logTimes.map(
-        async ({ timesheetId }: LogTime) => await axiosInstance.put(REMOVE_TIME_SHEET(timesheetId))
+      const onRemoveAllInvalidDatePromise: Promise<AxiosResponse>[] = logTimes.map(
+        async ({ timesheetId }: LogTime) =>
+          await axiosInstance.put(REMOVE_TIME_SHEET_ENDPOINT(timesheetId))
       );
 
       await Promise.all(onRemoveAllInvalidDatePromise);
