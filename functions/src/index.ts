@@ -27,7 +27,7 @@ app.use(morgan("combined"));
  * @return none
  */
 cron.schedule(
-  CRON_REGEX.AT_18H_DAILY,
+  CRON_REGEX.AT_0H_DAILY,
   async function () {
     const today = moment(new Date());
     const todayFormat = today.format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
@@ -152,7 +152,7 @@ app.get("**", (req: Request, res: Response) => {
 
 exports.app = functions
   .runWith({
-    // timeoutSeconds: 100,
     memory: "4GB"
   })
+  .region("asia-southeast2-a")
   .https.onRequest(app);
