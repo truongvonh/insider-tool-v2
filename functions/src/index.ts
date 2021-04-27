@@ -21,16 +21,6 @@ const app = express();
 
 app.use(morgan("combined"));
 
-cron.schedule(
-  CRON_REGEX.AT_0H_DAILY,
-  () => {
-    console.log("test", CRON_REGEX.AT_0H_DAILY);
-  },
-  {
-    timezone: "Asia/Bangkok"
-  }
-);
-
 /**
  * @description: Auto checkin tool with cronjob will run at 15h daily Vietnam Timezone
  * @param:  none
