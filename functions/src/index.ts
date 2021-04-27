@@ -92,7 +92,7 @@ app.get("/api", async (req: Request, res: Response) => {
   try {
     const date = new Date();
     const hours = (date.getHours() % 12) + 1; // London is UTC + 1hr;
-    res.json({ bongs: "BONG".repeat(hours) });
+    res.json({ bongs: "BONG update".repeat(hours) });
   } catch (e) {
     functions.logger.error(e);
   }
