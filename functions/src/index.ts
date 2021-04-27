@@ -8,7 +8,7 @@ import axiosInstance from "./api/axios.config";
 import { MOMENT_DATE, UTC_OFFSET } from "./constants/moment.date";
 import {
   REMOVE_TIME_SHEET_ENDPOINT,
-  // TIME_SHEET_ADD_ENDPOINT,
+  TIME_SHEET_ADD_ENDPOINT,
   TIME_SHEET_CALENDAR_ME
 } from "./api/endpoint";
 import { AxiosResponse } from "axios";
@@ -27,7 +27,7 @@ app.use(morgan("combined"));
  * @return: none
  */
 cron.schedule(
-  CRON_REGEX.AT_17H_DAILY,
+  CRON_REGEX.AT_18H_DAILY,
   async function () {
     const today = moment(new Date()).utcOffset(UTC_OFFSET.VIETNAM);
     const todayFormat = today.format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
@@ -63,7 +63,6 @@ cron.schedule(
 
       const hoursWorking = isOffMorning || isOffAfternoon ? HALF_DAY_WORKING : FULL_DAY_WORKING;
 
-      // @ts-ignore
       const requestPayload: IRequestCheckin = {
         userId: 1,
         logDate: todayFormat,
@@ -75,7 +74,7 @@ cron.schedule(
         milestoneId: null
       };
 
-      // await axiosInstance.post(TIME_SHEET_ADD_ENDPOINT, requestPayload);
+      await axiosInstance.post(TIME_SHEET_ADD_ENDPOINT, requestPayload);
 
       functions.logger.info(`Check in successful date: ${todayFormat}`);
     } catch (e) {
@@ -93,7 +92,7 @@ app.get("/api", async (req: Request, res: Response) => {
   try {
     const date = new Date();
     const hours = (date.getHours() % 12) + 1; // London is UTC + 1hr;
-    res.json({ bongs: "BONG 123132".repeat(hours) });
+    res.json({ bongs: "BONG".repeat(hours) });
   } catch (e) {
     functions.logger.error(e);
   }
