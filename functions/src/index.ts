@@ -8,7 +8,7 @@ import axiosInstance from "./api/axios.config";
 import { MOMENT_DATE, UTC_OFFSET } from "./constants/moment.date";
 import {
   REMOVE_TIME_SHEET_ENDPOINT,
-  TIME_SHEET_ADD_ENDPOINT,
+  // TIME_SHEET_ADD_ENDPOINT,
   TIME_SHEET_CALENDAR_ME
 } from "./api/endpoint";
 import { AxiosResponse } from "axios";
@@ -22,9 +22,9 @@ const app = express();
 app.use(morgan("combined"));
 
 /**
- * Auto checkin tool with cronjob will run at 17h daily Vietnam Timezone
- * @param  none
- * @return none
+ * @description: Auto checkin tool with cronjob will run at 17h daily Vietnam Timezone
+ * @param:  none
+ * @return: none
  */
 cron.schedule(
   CRON_REGEX.AT_17H_DAILY,
@@ -63,6 +63,7 @@ cron.schedule(
 
       const hoursWorking = isOffMorning || isOffAfternoon ? HALF_DAY_WORKING : FULL_DAY_WORKING;
 
+      // @ts-ignore
       const requestPayload: IRequestCheckin = {
         userId: 1,
         logDate: todayFormat,
@@ -74,7 +75,7 @@ cron.schedule(
         milestoneId: null
       };
 
-      await axiosInstance.post(TIME_SHEET_ADD_ENDPOINT, requestPayload);
+      // await axiosInstance.post(TIME_SHEET_ADD_ENDPOINT, requestPayload);
 
       functions.logger.info(`Check in successful date: ${todayFormat}`);
     } catch (e) {
@@ -124,8 +125,7 @@ app.post(
       if (!logTimes.length) return res.status(500).json({ data: "No data remove" });
 
       const onRemoveAllInvalidDatePromise: Promise<AxiosResponse>[] = logTimes.map(
-        async ({ timesheetId }: LogTime) =>
-          await axiosInstance.put(REMOVE_TIME_SHEET_ENDPOINT(timesheetId))
+        ({ timesheetId }: LogTime) => axiosInstance.put(REMOVE_TIME_SHEET_ENDPOINT(timesheetId))
       );
 
       await Promise.all(onRemoveAllInvalidDatePromise);
