@@ -22,12 +22,12 @@ const app = express();
 app.use(morgan("combined"));
 
 /**
- * @description: Auto checkin tool with cronjob will run at 17h daily Vietnam Timezone
+ * @description: Auto checkin tool with cronjob will run at 15h daily Vietnam Timezone
  * @param:  none
  * @return: none
  */
 cron.schedule(
-  CRON_REGEX.AT_18H_DAILY,
+  CRON_REGEX.AT_15H_DAILY,
   async function () {
     const today = moment(new Date()).utcOffset(UTC_OFFSET.VIETNAM);
     const todayFormat = today.format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
@@ -92,7 +92,7 @@ app.get("/api", async (req: Request, res: Response) => {
   try {
     const date = new Date();
     const hours = (date.getHours() % 12) + 1; // London is UTC + 1hr;
-    res.json({ bongs: "BONG update".repeat(hours) });
+    res.json({ bongs: "BONG update ".repeat(hours), cronTime: CRON_REGEX.AT_15H_DAILY });
   } catch (e) {
     functions.logger.error(e);
   }
