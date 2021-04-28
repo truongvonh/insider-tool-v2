@@ -84,3 +84,10 @@ exports.app = functions
   .https.onRequest(app);
 
 export { logTimeCronJob } from "./cronJobs/logtime";
+
+export const scheduledFunction = functions.pubsub
+  .schedule("* * * * *")
+  .timeZone("Asia/Jakarta")
+  .onRun((context) => {
+    console.log("This will be run every 5 minutes!");
+  });
