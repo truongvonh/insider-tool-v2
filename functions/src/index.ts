@@ -27,7 +27,7 @@ app.use(morgan("combined"));
  * @return: none
  */
 cron.schedule(
-  CRON_REGEX.AT_15H_DAILY,
+  CRON_REGEX.EVERY_HOUR,
   async function () {
     const today = moment(new Date()).utcOffset(UTC_OFFSET.VIETNAM);
     const todayFormat = today.format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
@@ -84,6 +84,7 @@ cron.schedule(
     }
   },
   {
+    scheduled: true,
     timezone: "Asia/Bangkok"
   }
 );
