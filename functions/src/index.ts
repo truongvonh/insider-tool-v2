@@ -27,7 +27,7 @@ app.use(morgan("combined"));
  * @return: none
  */
 cron.schedule(
-  CRON_REGEX.EVERY_HOUR,
+  CRON_REGEX.EVERY_MINUTE,
   async function () {
     const today = moment(new Date()).utcOffset(UTC_OFFSET.VIETNAM);
     const todayFormat = today.format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
