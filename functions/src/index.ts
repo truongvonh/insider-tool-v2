@@ -61,7 +61,6 @@ app.post(
       res.json({ error: e });
       functions.logger.error(e);
     }
-
   }
 );
 
@@ -77,11 +76,11 @@ app.get("**", (req: Request, res: Response) => {
   </html>`);
 });
 
+export { logTimeCronJob } from "./cronJobs/logtime";
+
 exports.app = functions
   .region("asia-southeast2")
   .runWith({
     memory: "4GB"
   })
   .https.onRequest(app);
-
-export { logTimeCronJob } from "./cronJobs/logtime";
