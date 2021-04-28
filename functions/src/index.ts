@@ -61,6 +61,7 @@ app.post(
       res.json({ error: e });
       functions.logger.error(e);
     }
+
   }
 );
 
