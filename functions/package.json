@@ -9,6 +9,7 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
+    "emulator-start": "firebase emulators:start",
     "firebase-set-env-production": "firebase functions:config:set env=\"$(cat env.json)\"\n",
     "deploy-firebase-prod": "node_modules/.bin/firebase -V"
   },
