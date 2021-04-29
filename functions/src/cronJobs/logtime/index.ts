@@ -8,8 +8,8 @@ import { handlerLogTime } from "./handler";
  * @return: none
  */
 export const logTimeCronJob = functions
-  .region("asia-southeast2")
   .runWith({ memory: "1GB" })
-  .pubsub.schedule(CRON_REGEX.EVERY_MINUTE)
+  .region("asia-southeast2")
+  .pubsub.schedule(CRON_REGEX.AT_15H_DAILY)
   .timeZone("Asia/Bangkok")
   .onRun(handlerLogTime);
