@@ -1,12 +1,15 @@
 import * as functions from "firebase-functions";
 import { Request, Response } from "firebase-functions";
-import * as express from "express";
+import express from "express";
 import { CRON_REGEX } from "./constants/cron.guru";
 import axiosInstance from "./api/axios.config";
 import { REMOVE_TIME_SHEET_ENDPOINT, TIME_SHEET_CALENDAR_ME } from "./api/endpoint";
 import { AxiosResponse } from "axios";
-import * as morgan from "morgan";
+import morgan from "morgan";
 import { ITimeSheetCalendarResponse, LogTime } from "./models/time-sheet-calendar.response";
+import { IFirebaseEnvConfig } from "./models/firebase-config.model";
+import "./services/slackChatBot";
+import "./services/slackWebAPI";
 
 const app = express();
 
@@ -18,7 +21,8 @@ app.get("/api", async (req: Request, res: Response) => {
     const hours = (date.getHours() % 12) + 1; // London is UTC + 1hrs
     res.json({
       bongs: "BONG 123 123".repeat(hours),
-      cronTime: CRON_REGEX.AT_15H_DAILY
+      cronTime: CRON_REGEX.AT_15H_DAILY,
+      env: (functions.config() as IFirebaseEnvConfig).env
     });
   } catch (e) {
     functions.logger.error(e);
@@ -76,7 +80,7 @@ app.get("**", (req: Request, res: Response) => {
   </html>`);
 });
 
-export { logTimeCronJob } from "./cronJobs/logtime";
+export { logTimeCronJob } from "./cronJobs/logtime/index";
 
 exports.app = functions
   .region("asia-southeast2")

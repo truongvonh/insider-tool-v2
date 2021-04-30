@@ -1,4 +1,4 @@
-import * as moment from "moment";
+import moment from "moment";
 import { MOMENT_DATE, UTC_OFFSET } from "../../constants/moment.date";
 import * as functions from "firebase-functions";
 import { AxiosResponse } from "axios";
