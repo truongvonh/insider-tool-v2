@@ -9,7 +9,7 @@ import morgan from "morgan";
 import { ITimeSheetCalendarResponse, LogTime } from "./models/time-sheet-calendar.response";
 import { IFirebaseEnvConfig } from "./models/firebase-config.model";
 import "./services/slackChatBot";
-import "./services/slackWebAPI";
+// import "./services/slackWebAPI";
 
 const app = express();
 
