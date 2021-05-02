@@ -8,8 +8,7 @@ import { AxiosResponse } from "axios";
 import morgan from "morgan";
 import { ITimeSheetCalendarResponse, LogTime } from "./models/time-sheet-calendar.response";
 import { IFirebaseEnvConfig } from "./models/firebase-config.model";
-import "./services/slackChatBot";
-// import "./services/slackWebAPI";
+import "./services/slack/chatBot";
 
 const app = express();
 
@@ -80,7 +79,8 @@ app.get("**", (req: Request, res: Response) => {
   </html>`);
 });
 
-export { logTimeCronJob } from "./cronJobs/logtime/index";
+export { logTimeCronJob } from "./cronJobs/logtime";
+export { slack } from "./services/slack/events";
 
 exports.app = functions
   .region("asia-southeast2")

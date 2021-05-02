@@ -9,7 +9,7 @@ import {
 import { SLACK_COMMAND } from "../../constants/slack-command";
 import { ISlackMessage } from "../../models/slack-message.type";
 import { handlerLogTime } from "../../cronJobs/logtime/handler";
-import slackWebAPI from "../slackWebAPI";
+import slackWebAPI from "./webAPI";
 import { SLACK_ENDPOINT } from "../../api/slack.endpoint";
 import { ISearchMessageResponse } from "../../models/search-message.response";
 import { IListPinMessages, Item } from "../../models/list-pins-message.response";
