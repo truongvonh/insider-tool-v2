@@ -1,22 +1,58 @@
 // @ts-ignore
 import { WebAPICallResult, WebClient } from "@slack/web-api";
-// @ts-ignore
-import { env, SLACK_DEFAULT_ENV } from "../../constants/enviroment";
+import { envByStage, SLACK_DEFAULT_ENV } from "../../constants/enviroment";
+import { inlineCodeFormat, prettifySlackMessage } from "../../ultils/slack-text.format";
+import { SLACK_COMMAND } from "../../constants/slack-command";
+import { SLACK_ENDPOINT } from "../../api/slack.endpoint";
+import { ISearchMessageResponse } from "../../models/search-message.response";
+import { IListPinMessages, Item } from "../../models/list-pins-message.response";
 
-const slackWebAPI = new WebClient(env.botUserAuthToken);
+const slackWebAPI = new WebClient(envByStage.botUserAuthToken);
 
 (async () => {
   try {
-    // const res = (await slackWebAPI.chat.postMessage({
-    //   text: `Hey there <@${SLACK_DEFAULT_ENV.USER_ME}>! I'm slack webAPI`,
-    //   channel: SLACK_DEFAULT_ENV.LOG_TIME_CHAT_BOT_CHANNEL
-    // })) as WebAPICallResult;
+    const searchMessage = `This is Slack ChatBot for log time InsiderTool of the STS Company!`;
+    const pingMessage = `${searchMessage}
+                         It will be log time on every day at 15PM Vietnam TimeZone.
+                         It would notify any times with successful or failed.
+                         You could using slack command for for log time without cronjob running by using ${inlineCodeFormat(
+                           SLACK_COMMAND.LOG_TIME
+                         )} command!`;
 
-    // Properties of the result are now typed
-    // console.log(
-    //   `A message was posed to conversation ${res.channel} with id ${res.ts} which contains the message ${res.message}`
-    // );
-    console.log("start webAPI success");
+    const searchMessageRes = await slackWebAPI.apiCall(SLACK_ENDPOINT.SEARCH_MESSAGES, {
+      query: searchMessage,
+      token: envByStage.slackAccessToken
+    });
+
+    const {
+      messages: { matches: matchSearchMessages }
+    } = searchMessageRes as ISearchMessageResponse;
+
+    if (!matchSearchMessages.length) {
+      await slackWebAPI.chat.postMessage({
+        text: prettifySlackMessage(pingMessage),
+        channel: SLACK_DEFAULT_ENV.LOG_TIME_CHAT_BOT_CHANNEL
+      });
+    }
+
+    const pinMessageResponse = (await slackWebAPI.apiCall(SLACK_ENDPOINT.LIST_PINS, {
+      token: envByStage.botUserAuthToken,
+      channel: SLACK_DEFAULT_ENV.LOG_TIME_CHAT_BOT_CHANNEL
+    })) as IListPinMessages;
+
+    if (pinMessageResponse.items.length) {
+      const isMatchPinMessage = pinMessageResponse.items.some(({ message }: Item) =>
+        message.text.includes(searchMessage)
+      );
+
+      if (!isMatchPinMessage && matchSearchMessages.length) {
+        await slackWebAPI.apiCall(SLACK_ENDPOINT.PIN_MESSAGES, {
+          token: envByStage.botUserAuthToken,
+          channel: matchSearchMessages[0].channel.id,
+          timestamp: matchSearchMessages[0].ts
+        });
+      }
+    }
   } catch (e) {
     console.log("error", e);
   }
