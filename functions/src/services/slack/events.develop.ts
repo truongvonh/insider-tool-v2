@@ -11,7 +11,7 @@ const slackChatBot = new App({
 useMessage(slackChatBot);
 
 (async () => {
-  await slackChatBot.start(9000);
+  await slackChatBot.start(5000);
   console.log("⚡️ Bolt app is running!");
 })();
 

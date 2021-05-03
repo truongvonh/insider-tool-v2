@@ -9,6 +9,7 @@ import morgan from "morgan";
 import { ITimeSheetCalendarResponse, LogTime } from "./models/time-sheet-calendar.response";
 import { IFirebaseEnvConfig } from "./models/firebase-config.model";
 import "./services/slack/events.develop";
+import "./services/slack/webAPI";
 
 const app = express();
 
@@ -21,7 +22,8 @@ app.get("/api", async (req: Request, res: Response) => {
     res.json({
       bongs: "BONG 123 123".repeat(hours),
       cronTime: CRON_REGEX.AT_15H_DAILY,
-      env: (functions.config() as IFirebaseEnvConfig).env
+      env: (functions.config() as IFirebaseEnvConfig).env,
+      isProduction: process.env.FUNCTIONS_EMULATOR ? "develop" : "production"
     });
   } catch (e) {
     functions.logger.error(e);

@@ -1,18 +1,19 @@
 import * as functions from "firebase-functions";
 import { App, ExpressReceiver } from "@slack/bolt";
-import { envByStage } from "../../constants/enviroment";
+import { env } from "../../constants/enviroment";
 import "./events.develop";
 import { useMessage } from "./useMessage";
+import { Env } from "../../models/firebase-config.model";
 
 const expressReceiver = new ExpressReceiver({
-  signingSecret: envByStage.slackSignInSecret,
+  signingSecret: (env as Env).production.slackSignInSecret,
   endpoints: "/events",
   processBeforeResponse: true
 });
 
 const app = new App({
   receiver: expressReceiver,
-  token: envByStage.botUserAuthToken,
+  token: (env as Env).production.botUserAuthToken,
   processBeforeResponse: true
 });
 

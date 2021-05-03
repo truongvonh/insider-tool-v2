@@ -53,6 +53,7 @@ const slackWebAPI = new WebClient(envByStage.botUserAuthToken);
         });
       }
     }
+    console.log("slack webAPI running");
   } catch (e) {
     console.log("error", e);
   }

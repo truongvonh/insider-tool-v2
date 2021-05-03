@@ -23,7 +23,8 @@ export const useMessage = (app: App) => {
     SLACK_COMMAND.LOG_TIME,
     async ({ message, say }: { message: unknown | ISlackMessage; say: any | unknown }) => {
       await say(`🤖🤖🤖 Log time start... :loading_airtable:`);
-      await handlerLogTime(null);
+      await say(`This feature not available comeback soon! 🤖🤖🤖`);
+      // await handlerLogTime(null);
     }
   );
 };
