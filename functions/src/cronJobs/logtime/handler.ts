@@ -16,6 +16,7 @@ import {
   tagUserFormat
 } from "../../ultils/slack-text.format";
 import { SLACK_COMMAND } from "../../constants/slack-command";
+import { getStartAndEndDateOfMonth } from "../../ultils/day.helper";
 
 const slackMessageToMe = async (message: string): Promise<unknown> => {
   return await slackWebAPI.chat.postMessage({
@@ -35,10 +36,12 @@ export const handlerLogTime = async (context: functions.EventContext | unknown):
     if (isWeekendDay)
       return await slackMessageToMe(`${todayFormat} is weekend! Log time done! 🤖🤖🤖`);
 
+    const { startOfMonth, endOfMonth } = getStartAndEndDateOfMonth();
+
     const {
       data: logTimeCalendar
     }: AxiosResponse<ITimeSheetCalendarResponse[]> = await axiosInstance.get(
-      TIME_SHEET_CALENDAR_ME
+      TIME_SHEET_CALENDAR_ME(startOfMonth, endOfMonth)
     );
 
     const logTimeByToday = logTimeCalendar.find(
