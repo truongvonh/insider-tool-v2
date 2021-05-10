@@ -8,8 +8,8 @@ import { AxiosResponse } from "axios";
 import morgan from "morgan";
 import { ITimeSheetCalendarResponse, LogTime } from "./models/time-sheet-calendar.response";
 import { IFirebaseEnvConfig } from "./models/firebase-config.model";
-import "./services/slackChatBot";
-// import "./services/slackWebAPI";
+import "./services/slack/events.develop";
+import "./services/slack/webAPI";
 
 const app = express();
 
@@ -22,7 +22,8 @@ app.get("/api", async (req: Request, res: Response) => {
     res.json({
       bongs: "BONG 123 123".repeat(hours),
       cronTime: CRON_REGEX.AT_15H_DAILY,
-      env: (functions.config() as IFirebaseEnvConfig).env
+      env: (functions.config() as IFirebaseEnvConfig).env,
+      isProduction: process.env.FUNCTIONS_EMULATOR ? "develop" : "production"
     });
   } catch (e) {
     functions.logger.error(e);
@@ -80,7 +81,8 @@ app.get("**", (req: Request, res: Response) => {
   </html>`);
 });
 
-export { logTimeCronJob } from "./cronJobs/logtime/index";
+export { logTimeCronJob } from "./cronJobs/logtime";
+export { slack } from "./services/slack/events.production";
 
 exports.app = functions
   .region("asia-southeast2")

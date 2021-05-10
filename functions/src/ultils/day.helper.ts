@@ -9,3 +9,13 @@ export const enumerateDaysBetweenDates = (startDate: string, endDate: string): s
   }
   return date;
 };
+
+export const getStartAndEndDateOfMonth = () => {
+  const startOfMonth = moment().clone().startOf("month").format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
+  const endOfMonth = moment().clone().endOf("month").format(MOMENT_DATE.FORMAT_YYYY_MM_DD);
+
+  return {
+    startOfMonth,
+    endOfMonth
+  };
+};

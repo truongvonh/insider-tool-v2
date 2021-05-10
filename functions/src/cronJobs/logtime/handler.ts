@@ -7,7 +7,7 @@ import axiosInstance from "../../api/axios.config";
 import { TIME_SHEET_ADD_ENDPOINT, TIME_SHEET_CALENDAR_ME } from "../../api/endpoint";
 import { FULL_DAY_WORKING, HALF_DAY_WORKING } from "../../constants/hour";
 import { IRequestCheckin } from "../../models/checkin-request.interface";
-import slackWebAPI from "../../services/slackWebAPI";
+import slackWebAPI from "../../services/slack/webAPI";
 import { SLACK_DEFAULT_ENV } from "../../constants/enviroment";
 import {
   codeBlockFormat,
@@ -16,6 +16,7 @@ import {
   tagUserFormat
 } from "../../ultils/slack-text.format";
 import { SLACK_COMMAND } from "../../constants/slack-command";
+import { getStartAndEndDateOfMonth } from "../../ultils/day.helper";
 
 const slackMessageToMe = async (message: string): Promise<unknown> => {
   return await slackWebAPI.chat.postMessage({
@@ -32,12 +33,15 @@ export const handlerLogTime = async (context: functions.EventContext | unknown):
   try {
     const isWeekendDay = today.day() === MOMENT_DATE.SATURDAY || today.day() === MOMENT_DATE.SUNDAY;
 
-    if (isWeekendDay) return await slackMessageToMe(`Today is weekend! Log time done! 🤖🤖🤖`);
+    if (isWeekendDay)
+      return await slackMessageToMe(`${todayFormat} is weekend! Log time done! 🤖🤖🤖`);
+
+    const { startOfMonth, endOfMonth } = getStartAndEndDateOfMonth();
 
     const {
       data: logTimeCalendar
     }: AxiosResponse<ITimeSheetCalendarResponse[]> = await axiosInstance.get(
-      TIME_SHEET_CALENDAR_ME
+      TIME_SHEET_CALENDAR_ME(startOfMonth, endOfMonth)
     );
 
     const logTimeByToday = logTimeCalendar.find(
@@ -53,7 +57,9 @@ export const handlerLogTime = async (context: functions.EventContext | unknown):
     } = logTimeByToday as ITimeSheetCalendarResponse;
 
     if (isPublicHoliday || logTimes.length || (isOffMorning && isOffAfternoon))
-      return await slackMessageToMe(`Today is Public holiday or off day! Log time done! 🤖🤖🤖`);
+      return await slackMessageToMe(
+        `${todayFormat} is Public holiday or off day! Log time done! 🤖🤖🤖`
+      );
 
     const hoursWorking = isOffMorning || isOffAfternoon ? HALF_DAY_WORKING : FULL_DAY_WORKING;
 
